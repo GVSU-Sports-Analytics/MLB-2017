@@ -9,7 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Read in the data
 ```{r}
-
+statCast <- read.csv(paste(getwd(), "/data/statcast2017.csv", sep = ""))
+bbref <- read.csv(paste(getwd(), "/data/bbref2017.csv", sep = ""))
 ```
-
