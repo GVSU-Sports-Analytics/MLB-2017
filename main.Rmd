@@ -1,6 +1,6 @@
 ---
 title: "MLB 2017"
-author: "Jensen Holm"
+author: "Jensen Holm & Kyle Knapp"
 date: "2022-11-07"
 output: html_document
 ---
