@@ -2,16 +2,22 @@
 title: "MLB 2017"
 author: "Jensen Holm & Kyle Knapp"
 date: "2022-11-07"
-output: html_document
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+## Libraries
 ```{r include=TRUE, message=FALSE, warning=FALSE}
 library(tidyverse)
 ```
+
 
 ## Read in the data
 ```{r include = TRUE}
@@ -22,25 +28,24 @@ bbref <- read.csv(paste(getwd(), "/data/bbref2017.csv", sep = ""))
 
 ## Joining the two datasets together with dplyr
 ```{r include=TRUE}
-statCast <- statCast %>% mutate(Name = paste(first_name, last_name, sep = " "))  
-bsbl <- left_join(statCast, bbref, by = "Name")
+statCastName <- statCast %>% mutate(Name = paste(first_name, last_name, sep = " "))  
 
+# currently not doing what I would like it to
+bsbl <- left_join(statCastName, bbref, by = "Name")
 ```
 
 
 ## EDA
-
-##### Relationship between Launch angle sweet spot % and avg hit distance  
 ```{r include = TRUE, warning=FALSE, message=FALSE}
 # without applying this filter on the data set, there were
 # a lot of players with too few plate appearances messing 
-statCastSub <- statCast %>% subset(attempts > 50)  
+bsblSub <- statCast %>% subset(attempts > 50)  
 
-statCastSub %>% ggplot(aes(x = anglesweetspotpercent, y = avg_distance, color = attempts, alpha = 0.5)) +
+bsblSub %>% ggplot(aes(x = anglesweetspotpercent, y = avg_distance, color = attempts, alpha = 0.5)) +
   geom_point() +
   geom_smooth(method = "lm") +
   labs(
-    title = "",
+    title = "Average Hit Distance as a funciton of launch angle sweet spot %" ,
     x = "Launch Angle Sweet Spot %",
     y = "Average Hit Distance (ft.)"
   )
