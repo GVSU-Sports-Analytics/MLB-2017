@@ -9,8 +9,40 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r include=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+```
+
 ## Read in the data
-```{r}
+```{r include = TRUE}
 statCast <- read.csv(paste(getwd(), "/data/statcast2017.csv", sep = ""))
 bbref <- read.csv(paste(getwd(), "/data/bbref2017.csv", sep = ""))
 ```
+
+
+## Joining the two datasets together with dplyr
+```{r include=TRUE}
+statCast <- statCast %>% mutate(Name = paste(first_name, last_name, sep = " "))  
+bsbl <- left_join(statCast, bbref, by = "Name")
+
+```
+
+
+## EDA
+
+##### Relationship between Launch angle sweet spot % and avg hit distance  
+```{r include = TRUE, warning=FALSE, message=FALSE}
+# without applying this filter on the data set, there were
+# a lot of players with too few plate appearances messing 
+statCastSub <- statCast %>% subset(attempts > 50)  
+
+statCastSub %>% ggplot(aes(x = anglesweetspotpercent, y = avg_distance, color = attempts, alpha = 0.5)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  labs(
+    title = "",
+    x = "Launch Angle Sweet Spot %",
+    y = "Average Hit Distance (ft.)"
+  )
+```
+
