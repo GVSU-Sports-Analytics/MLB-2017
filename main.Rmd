@@ -28,9 +28,14 @@ bbref <- read.csv(paste(getwd(), "/data/bbref2017.csv", sep = ""))
 
 ## Joining the two datasets together with dplyr
 ```{r include=TRUE}
-statCastName <- statCast %>% mutate(Name = paste(str_replace_all(first_name, " ", ""), str_replace_all(last_name, " ", ""), sep = " "))  
+statCastName <- statCast %>% mutate(
+  Name = paste(
+    str_replace_all(
+      first_name, " ", ""), 
+    str_replace_all(
+      last_name, " ", ""), 
+    sep = " "))  
 
-# currently not doing what I would like it to
 bsbl <- left_join(statCastName, bbref, by = "Name")
 ```
 
@@ -39,7 +44,7 @@ bsbl <- left_join(statCastName, bbref, by = "Name")
 ```{r include = TRUE, warning=FALSE, message=FALSE}
 # without applying this filter on the data set, there were
 # a lot of players with too few plate appearances messing 
-bsblSub <- statCast %>% subset(attempts > 50)  
+bsblSub <- bsbl %>% subset(attempts > 50)  
 
 bsblSub %>% ggplot(aes(x = anglesweetspotpercent, y = avg_distance, color = attempts, alpha = 0.5)) +
   geom_point() +
@@ -48,6 +53,20 @@ bsblSub %>% ggplot(aes(x = anglesweetspotpercent, y = avg_distance, color = atte
     title = "Average Hit Distance as a funciton of launch angle sweet spot %" ,
     x = "Launch Angle Sweet Spot %",
     y = "Average Hit Distance (ft.)"
+  )
+```
+
+```{r, message=FALSE, warning=FALSE}
+# plot batting average by average exit velocity, something that I could not do without
+# having mergeed the datasets
+
+bsblSub %>% ggplot(aes(x = BA, y = avg_hit_speed, color = barrels, alpha = 0.5)) + 
+  geom_point() +
+  geom_smooth(method = "lm") + 
+  labs (
+    title = "Average Hit Speed as a function of Batting Average",
+    x = "Batting Average",
+    y = "Average Hit Speed"
   )
 ```
 
