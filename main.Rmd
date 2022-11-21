@@ -41,6 +41,13 @@ bsbl <- left_join(statCastName, bbref, by = "Name")
 
 
 ## EDA
+
+```{r}
+glimpse(bsbl)
+```
+
+
+
 ```{r include = TRUE, warning=FALSE, message=FALSE}
 # without applying this filter on the data set, there were
 # a lot of players with too few plate appearances messing 
@@ -68,5 +75,13 @@ bsblSub %>% ggplot(aes(x = BA, y = avg_hit_speed, color = barrels, alpha = 0.5))
     x = "Batting Average",
     y = "Average Hit Speed"
   )
+```
+
+```{r}
+# t test
+colorado <- bsbl %>% subset(Team == "Colorado")
+everyoneElse <- bsbl %>% subset(Team != "Colorado")
+
+t.test(colorado$avg_hit_speed, everyoneElse$avg_hit_speed)
 ```
 
