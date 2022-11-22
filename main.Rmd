@@ -51,7 +51,7 @@ glimpse(bsbl)
 ```{r include = TRUE, warning=FALSE, message=FALSE}
 # without applying this filter on the data set, there were
 # a lot of players with too few plate appearances messing 
-bsblSub <- bsbl %>% subset(attempts > 50)  
+bsblSub <- bsbl %>% subset(attempts > 100)  
 
 bsblSub %>% ggplot(aes(x = anglesweetspotpercent, y = avg_distance, color = attempts, alpha = 0.5)) +
   geom_point() +
@@ -77,6 +77,7 @@ bsblSub %>% ggplot(aes(x = BA, y = avg_hit_speed, color = barrels, alpha = 0.5))
   )
 ```
 
+## T-Test between the Colorado Rockies Average hit speed and the rest of the MLB
 ```{r}
 # t test
 colorado <- bsbl %>% subset(Team == "Colorado")
@@ -84,4 +85,3 @@ everyoneElse <- bsbl %>% subset(Team != "Colorado")
 
 t.test(colorado$avg_hit_speed, everyoneElse$avg_hit_speed)
 ```
-
