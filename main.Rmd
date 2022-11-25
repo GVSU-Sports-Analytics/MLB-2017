@@ -64,7 +64,7 @@ bsblSub %>% ggplot(aes(x = anglesweetspotpercent, y = avg_distance, color = atte
   )
 ```
 
-```{r, message=FALSE, warning=FALSE}
+```{r, include=TRUE, message=FALSE, warning=FALSE}
 # plot batting average by average exit velocity, something that I could not do without
 # having mergeed the datasets
 
@@ -88,7 +88,7 @@ t.test(colorado$avg_hit_speed, everyoneElse$avg_hit_speed)
 ```
 
 # Non-Parametric BootStrap
-```{r include=TRUE}
+```{r include=TRUE, message=FALSE, warning=FALSE}
 bsbl2 <- na.omit(bsbl)
 
 set.seed(10)
@@ -107,7 +107,23 @@ bsbl2 %>% ggplot(aes(x = H)) +
 
 # Parametric BootStrap
 ```{r include=TRUE}
+# Number of bootstrap samples
+B <- 100
 
+# Instantiating matrix for bootstrap samples
+paramBoots <- matrix(NA, nrow = length(bsbl2), ncol = B)
+
+# Sampling with replacement B times
+for(b in 1:B) {
+paramBoots[, b] <- rnorm(n = length(bsbl2), mean = mean(bsbl2$H), sd = sd(bsbl2$H))
+}
+
+paramBootMedians <- vector(length = B)
+for(a in 1:B){
+ paramBootMedians[a] <- mean(paramBoots[,a])
+}
+
+sd(paramBootMedians)
 ```
 
 
