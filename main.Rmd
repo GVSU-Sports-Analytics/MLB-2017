@@ -16,6 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Libraries
 ```{r include=TRUE, message=FALSE, warning=FALSE}
 library(tidyverse)
+library(boot)
 ```
 
 
@@ -85,3 +86,28 @@ everyoneElse <- bsbl %>% subset(Team != "Colorado")
 
 t.test(colorado$avg_hit_speed, everyoneElse$avg_hit_speed)
 ```
+
+# Non-Parametric BootStrap
+```{r include=TRUE}
+bsbl2 <- na.omit(bsbl)
+
+set.seed(10)
+
+x <- c(bsbl2$H)
+
+#define function to calculate mean
+meanFunc <- function(x,i){mean(x[i])}
+
+#calculate standard error using 100 bootstrapped samples
+boot(x, meanFunc, 100)
+
+bsbl2 %>% ggplot(aes(x = H)) + 
+ geom_histogram()
+```
+
+# Parametric BootStrap
+```{r include=TRUE}
+
+```
+
+
