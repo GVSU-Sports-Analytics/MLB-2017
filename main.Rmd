@@ -58,7 +58,11 @@ glimpse(bsbl)
 # a lot of players with too few plate appearances messing 
 bsblSub <- bsbl %>% subset(attempts > 100)  
 
-bsblSub %>% ggplot(aes(x = anglesweetspotpercent, y = avg_distance, color = attempts, alpha = 0.5)) +
+bsblSub %>% ggplot(aes(
+  x = anglesweetspotpercent, 
+  y = avg_distance, 
+  color = attempts, 
+  alpha = 0.5)) +
   geom_point() +
   geom_smooth(method = "lm") +
   labs(
@@ -72,7 +76,11 @@ bsblSub %>% ggplot(aes(x = anglesweetspotpercent, y = avg_distance, color = atte
 # plot batting average by average exit velocity, something that I could not do without
 # having mergeed the datasets
 
-bsblSub %>% ggplot(aes(x = BA, y = avg_hit_speed, color = barrels, alpha = 0.5)) + 
+bsblSub %>% ggplot(aes(
+  x = BA, 
+  y = avg_hit_speed, 
+  color = barrels, 
+  alpha = 0.5)) + 
   geom_point() +
   geom_smooth(method = "lm") + 
   labs (
@@ -88,7 +96,10 @@ bsblSub %>% ggplot(aes(x = BA, y = avg_hit_speed, color = barrels, alpha = 0.5))
 colorado <- bsbl %>% subset(Team == "Colorado")
 everyoneElse <- bsbl %>% subset(Team != "Colorado")
 
-t.test(colorado$avg_hit_speed, everyoneElse$avg_hit_speed)
+t.test(
+  colorado$avg_hit_speed, 
+  everyoneElse$avg_hit_speed
+)
 ```
 
 # Non-Parametric BootStrap
@@ -115,11 +126,18 @@ bsbl2 %>% ggplot(aes(x = H)) +
 B <- 100
 
 # Instantiating matrix for bootstrap samples
-paramBoots <- matrix(NA, nrow = length(bsbl2), ncol = B)
+paramBoots <- matrix(NA, 
+                     nrow = length(bsbl2), 
+                     ncol = B
+)
 
 # Sampling with replacement B times
 for(b in 1:B) {
-paramBoots[, b] <- rnorm(n = length(bsbl2), mean = mean(bsbl2$H), sd = sd(bsbl2$H))
+paramBoots[, b] <- rnorm(
+  n = length(bsbl2), 
+  mean = mean(bsbl2$H), 
+  sd = sd(bsbl2$H)
+  )
 }
 
 paramBootMedians <- vector(length = B)
@@ -130,4 +148,9 @@ for(a in 1:B){
 sd(paramBootMedians)
 ```
 
+
+# p;ivoting the data into wide format
+```{r include=TRUE}
+
+```
 
