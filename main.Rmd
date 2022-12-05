@@ -22,20 +22,31 @@ library(boot)
 
 ## Read in the data
 ```{r include = TRUE}
-statCast <- read.csv(str_c(getwd(), "/data/statcast2017.csv", sep = ""))
-bbref <- read.csv(str_c(getwd(), "/data/bbref2017.csv", sep = ""))
+
+dataFilePath <- str_c(getwd(), "/data/", sep = "")
+
+importCSV <- function(fileName) {
+  read.csv(str_c(dataFilePath, str_c(fileName, ".csv", sep = ""), sep = ""))
+}
+
+statCast <- importCSV("statcast2017")
+bbref <- importCSV("bbref2017")
+
+# purpose of the trackman data is so that we can do a lubridate function with dates
+trackman <- importCSV("trackman")
+
 ```
 
 
-## Joining the two datasets together with dplyr
+## Joining the two datasets together with dplyr and stringr
 ```{r include=TRUE}
+# str_c() is a stirngr function
 statCastName <- statCast %>% mutate(
   Name = str_c(
-    str_replace_all(
-      first_name, " ", ""), 
-    str_replace_all(
-      last_name, " ", ""), 
-    sep = " "))  
+    str_replace_all(first_name, " ", ""), 
+    str_replace_all(last_name, " ", ""), 
+    sep = " ")
+)  
 
 bsbl <- left_join(
   statCastName, 
@@ -149,8 +160,13 @@ sd(paramBootMedians)
 ```
 
 
-# p;ivoting the data into wide format
+# pivoting the data into wide format
 ```{r include=TRUE}
+
+pivotedData <- pivot_wider(
+  bsblSub,
+  id_cols = Team,
+)
 
 ```
 
