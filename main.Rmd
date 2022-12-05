@@ -22,22 +22,26 @@ library(boot)
 
 ## Read in the data
 ```{r include = TRUE}
-statCast <- read.csv(paste(getwd(), "/data/statcast2017.csv", sep = ""))
-bbref <- read.csv(paste(getwd(), "/data/bbref2017.csv", sep = ""))
+statCast <- read.csv(str_c(getwd(), "/data/statcast2017.csv", sep = ""))
+bbref <- read.csv(str_c(getwd(), "/data/bbref2017.csv", sep = ""))
 ```
 
 
 ## Joining the two datasets together with dplyr
 ```{r include=TRUE}
 statCastName <- statCast %>% mutate(
-  Name = paste(
+  Name = str_c(
     str_replace_all(
       first_name, " ", ""), 
     str_replace_all(
       last_name, " ", ""), 
     sep = " "))  
 
-bsbl <- left_join(statCastName, bbref, by = "Name")
+bsbl <- left_join(
+  statCastName, 
+  bbref, 
+  by = "Name"
+)
 ```
 
 
