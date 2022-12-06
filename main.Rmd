@@ -15,6 +15,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Libraries
 ```{r include=TRUE, message=FALSE, warning=FALSE}
+library(png)
+library(grid)
 library(tidyverse)
 library(boot)
 ```
@@ -101,6 +103,18 @@ bsblSub %>% ggplot(aes(
   )
 ```
 
+
+# plotting average hit circle
+```{r include = TRUE}
+
+# read in baseball field image
+imgPath <- str_c("img", dataFilePath, sep = "")
+img <- png::readPNG(system.file(imgPath, package = "png"))
+
+```
+
+
+
 ## T-Test between the Colorado Rockies Average hit speed and the rest of the MLB
 ```{r}
 # t test
@@ -163,10 +177,9 @@ sd(paramBootMedians)
 # pivoting the data into wide format
 ```{r include=TRUE}
 
-pivotedData <- pivot_wider(
-  bsblSub,
-  id_cols = Team,
-)
+for (team in unique(bsblSub$Team)) {
+  print(team)
+}
 
 ```
 
