@@ -15,7 +15,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Libraries
 ```{r include=TRUE, message=FALSE, warning=FALSE}
-library(png)
 library(grid)
 library(tidyverse)
 library(boot)
@@ -75,7 +74,8 @@ bsblSub %>% ggplot(aes(
   x = anglesweetspotpercent, 
   y = avg_distance, 
   color = attempts, 
-  alpha = 0.5)) +
+  alpha = 0.5
+  )) +
   geom_point() +
   geom_smooth(method = "lm") +
   labs(
@@ -104,15 +104,20 @@ bsblSub %>% ggplot(aes(
 ```
 
 
-# plotting average hit circle
+# heatmap of batting average compared to avg_hit_speed and avg_laungh_angle
 ```{r include = TRUE}
 
-# read in baseball field image
-imgPath <- str_c("img", dataFilePath, sep = "")
-img <- png::readPNG(system.file(imgPath, package = "png"))
+bsblSub %>% ggplot(aes(
+  x = round(avg_hit_angle, digits=0),
+  y = round(avg_hit_speed, digits=0),
+  fill = BA
+)) + geom_tile()
+
+# Group by mean using dplyr
+mean_age_bsbl <- bsbl %>% group_by(Team) %>% 
+  summarise(mean_age=mean(Age))
 
 ```
-
 
 
 ## T-Test between the Colorado Rockies Average hit speed and the rest of the MLB
