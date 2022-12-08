@@ -8,7 +8,7 @@ output:
     highlight: github
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -118,6 +118,44 @@ mean_age_bsbl <- bsbl %>% group_by(Team) %>%
   summarise(mean_age=mean(Age))
 
 ```
+
+# making strikezone visualization with trackman dataset
+```{r include=TRUE}
+
+
+in2ft <- function(inches) {
+  inches / 12
+}
+
+# strike zone dimensions governed by https://www.baseballprospectus.com/news/article/40891/prospectus-feature-the-universal-strike-zone/
+leftSZ <- in2ft(-(19.94 / 2))
+rightSZ <- in2ft(19.94 / 2)
+heightSZ <- in2ft(44.08)
+minySZ <- in2ft(18.29)
+
+strikeZonePlot <- function(dataset) {
+  dataset %>% ggplot(
+    aes(
+      x = PlateLocSide,
+      y = PlateLocHeight,
+      color = TaggedPitchType
+    ) 
+  ) + geom_point() + 
+    geom_rect(
+      xmin = leftSZ,
+      xmax = rightSZ,
+      ymin = minySZ,
+      ymax = heightSZ,
+      alpha = 0,
+      color = "black"
+    )
+}
+
+trackman %>% subset(PitcherThrows == "Right") %>% strikeZonePlot()
+trackman %>% subset(PitcherThrows == "Left") %>% strikeZonePlot()
+
+```
+
 
 
 ## T-Test between the Colorado Rockies Average hit speed and the rest of the MLB
