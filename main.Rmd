@@ -20,7 +20,6 @@ library(tidyverse)
 library(boot)
 ```
 
-
 ## Read in the data
 ```{r include = TRUE}
 
@@ -35,7 +34,6 @@ bbref <- importCSV("bbref2017")
 
 # purpose of the trackman data is so that we can do a lubridate function with dates
 trackman <- importCSV("trackman")
-
 ```
 
 
@@ -216,13 +214,20 @@ for(a in 1:B){
 sd(paramBootMedians)
 ```
 
-
-# pivoting the data into wide format
+# Pivoting data into wide format
+<br>
+This would create a new dataset with columns for each unique value in the Team column, <br> 
+and the values for barrels per plate appearance <br> 
+column would be spread across these new columns. <br>
+<br>
 ```{r include=TRUE}
-
-for (team in unique(bsblSub$Team)) {
-  print(team)
-}
-
+wideBsbl <- pivot_wider(
+  bsblSub, 
+  names_from = Team, 
+  values_from = brl_pa
+)
 ```
+
+
+
 
