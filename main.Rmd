@@ -17,6 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r include=TRUE, message=FALSE, warning=FALSE}
 library(grid)
 library(tidyverse)
+library(lubridate)
 library(boot)
 ```
 
@@ -83,19 +84,15 @@ bsblSub %>% ggplot(aes(
   fill = BA
 )) + geom_tile()
 
-bsblSub %>% ggplot(aes(x = HR, y = RBI)) + geom_density_2d_filled()
 
-
-# Group by mean using dplyr
-mean_age_bsbl <- bsbl %>% group_by(Age) %>% 
-  summarise(brl_pct=mean(BA), hr=mean)
-
+bsblSub %>% ggplot(aes(x = HR, y = RBI)) + geom_density_2d_filled() +
+  labs(
+    title = "Runs Batted In as a function of Home Runs in 2017 (Density Plot)"
+  )
 ```
 
 # making strikezone visualization with trackman dataset
 ```{r include=TRUE}
-
-
 in2ft <- function(inches) {
   inches / 12
 }
@@ -123,10 +120,18 @@ strikeZonePlot <- function(dataset) {
       color = "black"
     )
 }
+```
 
+
+# Strike Zone graph filtered with only pitches thrown from Right Handed Pitchers
+```{r include=TRUE, message=FALSE, warning=FALSE}
 trackman %>% subset(PitcherThrows == "Right") %>% strikeZonePlot()
-trackman %>% subset(PitcherThrows == "Left") %>% strikeZonePlot()
+```
 
+
+# Strike Zone graph filtered with only pitches thrown from Left Handed Pitchers
+```{r include=TRUE, message=FALSE, warning=FALSE}
+trackman %>% subset(PitcherThrows == "Left") %>% strikeZonePlot()
 ```
 
 
@@ -201,6 +206,13 @@ wideBsbl <- pivot_wider(
   names_from = Team, 
   values_from = brl_pa
 )
+```
+
+# utilizing lubridate functions with our data
+```{r include=TRUE}
+
+trackman$Date %>% format("%B %D, %Y")
+
 ```
 
 
