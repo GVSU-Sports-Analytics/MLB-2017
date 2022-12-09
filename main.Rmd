@@ -55,14 +55,6 @@ bsbl <- left_join(
 ```
 
 
-## EDA
-
-```{r}
-glimpse(bsbl)
-```
-
-
-
 ```{r include = TRUE, warning=FALSE, message=FALSE}
 # without applying this filter on the data set, there were
 # a lot of players with too few plate appearances messing 
@@ -84,36 +76,19 @@ bsblSub %>% ggplot(aes(
 ```
 
 ```{r, include=TRUE, message=FALSE, warning=FALSE}
-# plot batting average by average exit velocity, something that I could not do without
-# having mergeed the datasets
-
-bsblSub %>% ggplot(aes(
-  x = BA, 
-  y = avg_hit_speed, 
-  color = barrels, 
-  alpha = 0.5)) + 
-  geom_point() +
-  geom_smooth(method = "lm") + 
-  labs (
-    title = "Average Hit Speed as a function of Batting Average",
-    x = "Batting Average",
-    y = "Average Hit Speed"
-  )
-```
-
-
 # heatmap of batting average compared to avg_hit_speed and avg_laungh_angle
-```{r include = TRUE}
-
 bsblSub %>% ggplot(aes(
   x = round(avg_hit_angle, digits=0),
   y = round(avg_hit_speed, digits=0),
   fill = BA
 )) + geom_tile()
 
+bsblSub %>% ggplot(aes(x = HR, y = RBI)) + geom_density_2d_filled()
+
+
 # Group by mean using dplyr
-mean_age_bsbl <- bsbl %>% group_by(Team) %>% 
-  summarise(mean_age=mean(Age))
+mean_age_bsbl <- bsbl %>% group_by(Age) %>% 
+  summarise(brl_pct=mean(BA), hr=mean)
 
 ```
 
