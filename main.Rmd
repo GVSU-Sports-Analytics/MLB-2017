@@ -82,7 +82,13 @@ bsblSub %>% ggplot(aes(
   x = round(avg_hit_angle, digits=0),
   y = round(avg_hit_speed, digits=0),
   fill = BA
-)) + geom_tile()
+)) + 
+  geom_tile() + 
+  labs(
+    title = "Average Hit Speed vs Average Hit angle grouped by BA",
+    x = "Average Hit Angle",
+    y = "Average Hit Speed"
+  )
 
 
 bsblSub %>% ggplot(aes(x = HR, y = RBI)) + geom_density_2d_filled() +
@@ -211,7 +217,13 @@ wideBsbl <- pivot_wider(
 # utilizing lubridate functions with our data
 ```{r include=TRUE}
 
-trackman$Date %>% format("%B %D, %Y")
+for (d in trackman$Date) {
+  month <- month(d)
+  print(month.abb[month])
+}
+
+dates <- trackman$Date %>% month()
+month.abb[dates]
 
 ```
 
