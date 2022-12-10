@@ -212,11 +212,16 @@ paramBootsStat <- function(func, parameterBoots) {
 
 ```
 
+Using the above functions to evaluate the standart deviation of 
+the bootstrap sample mean, and median for season total hits in 2017
 ```{r include=TRUE}
 b <- paramBoots(bsbl2$H,100)
-print(length(b))
-paramBootsStat(median, b)
+bootMedians <- sd(paramBootsStat(median, b))
+bootMeans <- sd(paramBootsStat(mean, b))
 ```
+
+Standard deviation of bootstrapped medians -> `r bootMedians` <br>
+Standart deviation of bootstrapped means -> `r bootMeans` <br>
 
 
 # Pivoting data into wide format
