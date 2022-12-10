@@ -1,0 +1,303 @@
+---
+title: "Project"
+author: Kyle Knapp and Jensen Holm
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+```{r}
+library("baseballr")
+library("tidyverse")
+library("boot")
+library("skimr")
+library("knitr")
+library("dplyr")
+```
+
+```{r}
+# Read in data
+library(readr) 
+statCast <- read_csv("statcast2017.csv")
+skim(statCast)
+
+bbref<- read_csv("bbref2017.csv")
+skim(bbref)
+
+```
+
+## Merge Left Join
+
+```{r}
+#merge left join
+
+statCastName <- statCast %>% mutate(Name = paste(str_replace_all(first_name, " ", ""), str_replace_all(last_name, " ", ""), sep = " "))  
+
+bsbl <- left_join(statCastName, bbref, by = "Name")
+
+bsblSub <- bsbl %>% subset(attempts > 100)  
+```
+
+
+```{r}
+#
+ggplot(data = statCast,
+       mapping = aes(x = avg_hit_angle,
+                     y = avg_hit_speed)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = F) +
+  labs(title = "Avg. hit angle over Avg. hit speed",
+       subtitle = "Statcast 2017") +
+  theme_bw()
+```
+
+
+```{r}
+brl_percent_sub <- statCast %>% subset(brl_percent > 0)
+ggplot(data = brl_percent_sub,
+       mapping = aes(x = brl_percent,
+                     y = avg_hit_speed)) + 
+  geom_point() + 
+  geom_smooth(method = "lm") +
+  labs(title = "Barrel Percentage vs. Average Hit Speed",
+       x = "Percentage of Barrels",
+       y = "Average Hit Speed",
+       subtitle = "Statcast 2017") +
+  theme_bw()
+```
+
+```{r}
+#scatter plot
+barrels_sub <- bsbl %>% subset(barrels > 0)
+barrels_sub <- na.omit(barrels_sub)
+barrels_sub = filter(barrels_sub, !(Level %in% c("Maj-AL,Maj-NL")))
+
+ggplot(data = barrels_sub,
+       mapping = aes(x = barrels,
+                     y = avg_hr_distance,
+                     color = Level)) +
+  geom_point()+
+  geom_smooth(method = "lm", se = F) +
+  labs(title = "Avg. hit angle over Avg. hit speed",
+       x = "Number of Barrels",
+       y = "Average Home Run Distance",
+       subtitle = "Statcast 2017") +
+  theme_bw()
+```
+
+
+
+```{r}
+avg_age <- bsbl %>% group_by(Team) %>% 
+  summarize(mean_age = mean(Age, na.rm = T))
+
+avg_age2 <- avg_age[!grepl(",", avg_age$Team),]
+avg_age2 <- avg_age2[-28,]
+
+avg_age2 %>% ggplot(aes(x = Team, y = mean_age, color = Team)) +
+  geom_col() +
+   labs(title = "Average Age of Every MLB Team",
+       x = "Team",
+       y = "Average Age",
+       caption = "data source: Baseball Reference") +
+  scale_fill_manual(values = c("#D55E00","#0072B2")) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 90,
+                                   vjust = .7),
+        legend.position = "none")
+```
+
+## Tables of Summary Statistics
+
+```{r}
+# Team summaries of Barrels
+
+bsbl <- na.omit(bsbl)
+bsbl5 <- bsbl[!grepl(",", bsbl$Team),]
+
+teamSummary <- bsbl5 %>% group_by(Team) %>% 
+   summarise(Average = mean(barrels, na.rm = TRUE),
+             Median = median(barrels, na.rm = TRUE),
+             Min = min(barrels, na.rm = TRUE),
+             Max = max(barrels, na.rm = TRUE)) %>%
+  mutate(across(Average:Max, ~ round(.x, 3))) %>% 
+  arrange(desc(Average))
+
+
+knitr::kable(teamSummary)
+```
+
+```{r}
+bsbl <- na.omit(bsbl)
+bsbl = filter(bsbl, !(Level %in% c("Maj-AL,Maj-NL")))
+levelSummary <- bsbl %>% group_by(Level) %>% 
+   summarise(Average = mean(BA, na.rm = TRUE),
+             Median = median(BA, na.rm = TRUE),
+             Min = min(BA, na.rm = TRUE),
+             Max = max(BA, na.rm = TRUE))
+
+
+levelSummary <- levelSummary %>% mutate(across(Average:Max, ~ round(.x, 3))) %>% 
+  arrange(desc(Average))
+
+knitr::kable(levelSummary)
+```
+
+```{r}
+bsbl <- na.omit(bsbl)
+
+ageSummary <- bsbl %>% group_by(Age) %>% 
+   summarise(Average = mean(BA, na.rm = TRUE),
+             Median = median(BA, na.rm = TRUE),
+             Min = min(BA, na.rm = TRUE),
+             Max = max(BA, na.rm = TRUE))
+
+
+ageSummary <- ageSummary %>% mutate(across(Average:Max, ~ round(.x, 3))) %>% 
+  arrange(Age)
+
+knitr::kable(ageSummary)
+```
+
+
+## Bootstrap (Extra credit - Not complete)
+
+```{r}
+
+# Two-sample t-test (b)
+
+colorado <- bsbl %>% subset(Team == "Colorado")
+everyone <- bsbl %>% subset(Team != "Colorado")
+tResult <- t.test(x = colorado$HR,
+                  y = everyone$HR)
+
+tResult
+```
+
+```{r}
+bsbl2 <- na.omit(bsbl)
+
+#(d)
+
+#make this example reproducible 
+set.seed(10)
+
+#load boot library
+library(boot)
+
+#define dataset
+x <- c(bsbl2$H)
+
+#define function to calculate mean
+meanFunc <- function(x,i){mean(x[i])}
+
+#calculate standard error using 100 bootstrapped samples
+boot(x, meanFunc, 100)
+
+bsbl2 %>% ggplot(aes(x = H)) + 
+  geom_histogram()
+```
+
+
+```{r}
+#Generate B=10,000 samples from a normal distribution using the estimated mean and standard deviation from the observed data set, and visualize this distribution using a histogram. (c)
+
+# Number of bootstrap samples
+B <- 100
+
+# Instantiating matrix for bootstrap samples
+paramBoots <- matrix(NA, nrow = length(bsbl2), ncol = B)
+
+# Sampling with replacement B times
+for(b in 1:B) {
+paramBoots[, b] <- rnorm(n = length(bsbl2), mean = mean(bsbl2$H), sd = sd(bsbl2$H))
+}
+
+paramBootMedians <- vector(length = B)
+for(a in 1:B){
+  paramBootMedians[a] <- mean(paramBoots[,a])
+}
+
+sd(paramBootMedians)
+
+```
+
+## Data Dictionary
+
+```{r}
+#Dictionary 
+library(tidyverse)
+
+
+# Loading palmer penguins data
+data(bsbl)
+
+# Creating data dictionary. 
+# Note penguins will need to be replaced with your own data set, and 
+# the variable descriptions should be updated as well.
+dataDictionary <- tibble(Variable = colnames(bsbl),
+                         Description = c("Last name of player",
+                                         "First name of player",
+                                         "Player identification number",
+                                         "Number of batting attempts",
+                                         "Average launch angle of the ball off the bat (degrees)",
+                                         "Percentage of hits where the launch angle of the ball fell within the sweet spot",
+                                         "Maximum ball speed of a players single hit (mph)",
+                                         "Average ball speed of a player's hits (mph)",
+                                         "Fly ball line drive percentage",
+                                         "Ground ball percentage",
+                                         "Maximum distance of a ball hit (feet)",
+                                         "Average distance of a ball hit (feet)",
+                                         "Average distance of a home run (feet)",
+                                         "ev95Plus",
+                                         "ev95percent",
+                                         "Number of barrels hit in a season",
+                                         "Barrel percentage",
+                                         "Barrels per plate appearance",
+                                         "Player's full name",
+                                         "Player's ID number",
+                                         "Player's baseball reference ID number",
+                                         "Season year",
+                                         "Player's age",
+                                         "Level of play",
+                                         "Team player is on",
+                                         "Games played",
+                                         "Plate appearences",
+                                         "At-bats",
+                                         "Runs scored",
+                                         "Number of hits",
+                                         "Singles",
+                                         "Doubles",
+                                         "Triples",
+                                         "Home runs",
+                                         "Runs batted in",
+                                         "Walks",
+                                         "Intentional walks",
+                                         "Unintentional walks",
+                                         "Strikeouts",
+                                         "Hit by pitch",
+                                         "Shutouts",
+                                         "Sacrifice Flies",
+                                         "Ground into double play",
+                                         "Stolen bases",
+                                         "Caught Stealing",
+                                         "Batting average",
+                                         "On base percenatage",
+                                         "Slugging percentage",
+                                         "On base plus slugging percentage"),
+                         Type = map_chr(bsbl, .f = function(x){typeof(x)[1]}),
+                         Class = map_chr(bsbl, .f = function(x){class(x)[1]}))
+```
+
+
+```{r}
+# Printing nicely in R Markdown (option 1)
+flextable::flextable(dataDictionary, cwidth = 2)
+
+# Printing nicely in R Markdown (option 2)
+knitr::kable(dataDictionary)
+```
+
+

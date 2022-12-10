@@ -23,17 +23,21 @@ library(boot)
 
 ## Read in the data
 ```{r include = TRUE}
-
+# should work with any computer as long as you have
+# the data folder to go with this
 dataFilePath <- str_c(getwd(), "/data/", sep = "")
 
+# function to make importing data into this project
+# seamless
 importCSV <- function(fileName) {
   read.csv(str_c(dataFilePath, str_c(fileName, ".csv", sep = ""), sep = ""))
 }
+```
 
+
+```{r include = TRUE}
 statCast <- importCSV("statcast2017")
 bbref <- importCSV("bbref2017")
-
-# purpose of the trackman data is so that we can do a lubridate function with dates
 trackman <- importCSV("trackman")
 ```
 
@@ -45,7 +49,8 @@ statCastName <- statCast %>% mutate(
   Name = str_c(
     str_replace_all(first_name, " ", ""), 
     str_replace_all(last_name, " ", ""), 
-    sep = " ")
+    sep = " "
+    )
 )  
 
 bsbl <- left_join(
@@ -99,16 +104,21 @@ bsblSub %>% ggplot(aes(x = HR, y = RBI)) + geom_density_2d_filled() +
 
 # making strikezone visualization with trackman dataset
 ```{r include=TRUE}
+# constanst for the strikezone were decided based on this
+# article -> https://www.baseballprospectus.com/news/article/40891/prospectus-feature-the-universal-strike-zone/
+
 in2ft <- function(inches) {
   inches / 12
 }
 
-# strike zone dimensions governed by https://www.baseballprospectus.com/news/article/40891/prospectus-feature-the-universal-strike-zone/
 leftSZ <- in2ft(-(19.94 / 2))
 rightSZ <- in2ft(19.94 / 2)
 heightSZ <- in2ft(44.08)
 minySZ <- in2ft(18.29)
+```
 
+
+```{r include=TRUE}
 strikeZonePlot <- function(dataset) {
   dataset %>% ggplot(
     aes(
@@ -174,31 +184,40 @@ bsbl2 %>% ggplot(aes(x = H)) +
 
 # Parametric BootStrap
 ```{r include=TRUE}
-# Number of bootstrap samples
-B <- 100
 
-# Instantiating matrix for bootstrap samples
-paramBoots <- matrix(NA, 
-                     nrow = length(bsbl2), 
-                     ncol = B
-)
-
-# Sampling with replacement B times
-for(b in 1:B) {
-paramBoots[, b] <- rnorm(
-  n = length(bsbl2), 
-  mean = mean(bsbl2$H), 
-  sd = sd(bsbl2$H)
+paramBoots <- function(data_set, num_samples) {
+  pBoots <- matrix(
+    NA, nrow = length(data_set), ncol = num_samples
   )
+  for (i in 1:num_samples) {
+    pBoots[, i] <- rnorm(
+      n = length(data_set),
+      mean = mean(data_set),
+      sd = sd(data_set)
+    )
+  }
+  return (pBoots)
 }
 
-paramBootMedians <- vector(length = B)
-for(a in 1:B){
- paramBootMedians[a] <- mean(paramBoots[,a])
+
+# for the func argument in this function, pass in a function
+# 'mean' or 'median'
+paramBootsStat <- function(func, parameterBoots) {
+  pbs <- vector(length = ncol(parameterBoots))
+  for (i in 1:ncol(parameterBoots)) {
+    pbs[i] <- func(parameterBoots[,i])
+  }
+  return (pbs)
 }
 
-sd(paramBootMedians)
 ```
+
+```{r include=TRUE}
+b <- paramBoots(bsbl2$H,100)
+print(length(b))
+paramBootsStat(median, b)
+```
+
 
 # Pivoting data into wide format
 <br>
@@ -215,16 +234,76 @@ wideBsbl <- pivot_wider(
 ```
 
 # utilizing lubridate functions with our data
-```{r include=TRUE}
+```{r include=TRUE, R.options=list(max.print=10)}
 
-for (d in trackman$Date) {
-  month <- month(d)
-  print(month.abb[month])
-}
-
+# creating the dates vector
 dates <- trackman$Date %>% month()
-month.abb[dates]
 
+# adding it to our dataframe
+trackman$month = month.abb[dates]
+
+trackman$month
+
+```
+
+# Data Dictionary
+```{r indluce=FALSE}
+
+dataDictionary <- tibble(Variable = colnames(bsbl),
+                         Description = c("Last name of player",
+                                         "First name of player",
+                                         "Player identification number",
+                                         "Number of batting attempts",
+                                         "Average launch angle of the ball off the bat (degrees)",
+                                         "Percentage of hits where the launch angle of the ball fell within the sweet spot",
+                                         "Maximum ball speed of a players single hit (mph)",
+                                         "Average ball speed of a player's hits (mph)",
+                                         "Fly ball line drive percentage",
+                                         "Ground ball percentage",
+                                         "Maximum distance of a ball hit (feet)",
+                                         "Average distance of a ball hit (feet)",
+                                         "Average distance of a home run (feet)",
+                                         "ev95Plus",
+                                         "ev95percent",
+                                         "Number of barrels hit in a season",
+                                         "Barrel percentage",
+                                         "Barrels per plate appearance",
+                                         "Player's full name",
+                                         "Player's ID number",
+                                         "Player's baseball reference ID number",
+                                         "Season year",
+                                         "Player's age",
+                                         "Level of play",
+                                         "Team player is on",
+                                         "Games played",
+                                         "Plate appearences",
+                                         "At-bats",
+                                         "Runs scored",
+                                         "Number of hits",
+                                         "Singles",
+                                         "Doubles",
+                                         "Triples",
+                                         "Home runs",
+                                         "Runs batted in",
+                                         "Walks",
+                                         "Intentional walks",
+                                         "Unintentional walks",
+                                         "Strikeouts",
+                                         "Hit by pitch",
+                                         "Shutouts",
+                                         "Sacrifice Flies",
+                                         "Ground into double play",
+                                         "Stolen bases",
+                                         "Caught Stealing",
+                                         "Batting average",
+                                         "On base percenatage",
+                                         "Slugging percentage",
+                                         "On base plus slugging percentage"),
+                         Type = map_chr(bsbl, .f = function(x){typeof(x)[1]}),
+                         Class = map_chr(bsbl, .f = function(x){class(x)[1]}))
+
+# printing it out nicely
+knitr::kable(dataDictionary)
 ```
 
 
