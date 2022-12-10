@@ -1,4 +1,7 @@
-# MLB-2017
-Jensen &amp; Kyle's GVSU STA 418 final project
+# Jensen and Kyle's GVSU STA 418 final project
 
-`rmarkdown::render("test.Rmd", "html_document")`
+### Run locally
+1. `git clone https://github.com/GVSU-Sports-Analytics/MLB-2017` <br>
+2. open MLB-2017 folder in R-studio <br>
+3. knit main.rmd and dashboard.rmd 
+
