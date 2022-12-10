@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-## Libraries
+# Libraries
 ```{r include=TRUE, message=FALSE, warning=FALSE}
 library(grid)
 library(tidyverse)
@@ -21,7 +21,7 @@ library(lubridate)
 library(boot)
 ```
 
-## Read in the data
+# Read in the data
 ```{r include = TRUE}
 # should work with any computer as long as you have
 # the data folder to go with this
@@ -42,9 +42,11 @@ trackman <- importCSV("trackman")
 ```
 
 
-## Joining the two datasets together with dplyr and stringr
+# Joining the two datasets together with dplyr and stringr
+
+Joining the statcast dataset and the baseball reference
+datasets together on the players name using stringr and a left join
 ```{r include=TRUE}
-# str_c() is a stirngr function
 statCastName <- statCast %>% mutate(
   Name = str_c(
     str_replace_all(first_name, " ", ""), 
@@ -61,6 +63,7 @@ bsbl <- left_join(
 ```
 
 
+# DATA VISUALIZATION
 ```{r include = TRUE, warning=FALSE, message=FALSE}
 # without applying this filter on the data set, there were
 # a lot of players with too few plate appearances messing 
@@ -94,15 +97,25 @@ bsblSub %>% ggplot(aes(
     x = "Average Hit Angle",
     y = "Average Hit Speed"
   )
+```
 
+The above heatmap is not amazing, I had to round the numbers for average hit
+speed and average hit angle down to an integer because without it it was no 
+longer a heatmap, but a scatterplot with funny looking points. Still I think
+that this illustrates that having a higher average hit angle and hit speed than
+everyone else does not mean that you have a higher batting average. The sweet 
+spot appears to be in the middle of the heatmap as that is where the colors
+appear to be lighter in color. Thus indicating a higher batting average
 
+```{r, include=TRUE, message=FALSE, warning=FALSE}
 bsblSub %>% ggplot(aes(x = HR, y = RBI)) + geom_density_2d_filled() +
   labs(
     title = "Runs Batted In as a function of Home Runs in 2017 (Density Plot)"
   )
 ```
 
-# making strikezone visualization with trackman dataset
+
+#### making strikezone visualization with trackman dataset
 ```{r include=TRUE}
 # constanst for the strikezone were decided based on this
 # article -> https://www.baseballprospectus.com/news/article/40891/prospectus-feature-the-universal-strike-zone/
@@ -111,13 +124,19 @@ in2ft <- function(inches) {
   inches / 12
 }
 
-leftSZ <- in2ft(-(19.94 / 2))
-rightSZ <- in2ft(19.94 / 2)
+leftSZ <- in2ft(-(19.94 / 2)) * 2
+rightSZ <- in2ft(19.94 / 2) * 2
 heightSZ <- in2ft(44.08)
 minySZ <- in2ft(18.29)
 ```
 
+According to baseballprospectus.com, the dimensions for the universal
+strikezone are as follows:
 
+Height :`r heightSZ` ft.
+Width : `r rightSZ` ft.
+
+#### Function for creating a strikezone plot given a trackman dataset
 ```{r include=TRUE}
 strikeZonePlot <- function(dataset) {
   dataset %>% ggplot(
@@ -134,27 +153,36 @@ strikeZonePlot <- function(dataset) {
       ymax = heightSZ,
       alpha = 0,
       color = "black"
-    )
+    ) + 
+    scale_x_continuous(limits = c(-5, 5)) +
+    scale_y_continuous(limits = c(-1, 6))
 }
 ```
 
 
-# Strike Zone graph filtered with only pitches thrown from Right Handed Pitchers
+#### Strike Zone graph filtered with only pitches thrown from Right Handed Pitchers
 ```{r include=TRUE, message=FALSE, warning=FALSE}
-trackman %>% subset(PitcherThrows == "Right") %>% strikeZonePlot()
+trackman %>% subset(PitcherThrows == "Right") %>% strikeZonePlot() +
+  labs(
+    title = "Pitches thrown by right handed pitchers colored by pitch type "
+  )
 ```
 
 
-# Strike Zone graph filtered with only pitches thrown from Left Handed Pitchers
+#### Strike Zone graph filtered with only pitches thrown from Left Handed Pitchers
 ```{r include=TRUE, message=FALSE, warning=FALSE}
-trackman %>% subset(PitcherThrows == "Left") %>% strikeZonePlot()
+trackman %>% subset(PitcherThrows == "Left") %>% strikeZonePlot() +
+  labs(
+    title = "Pitches thrown by left handed pitchers colored by pitch type"
+  )
 ```
 
 
 
-## T-Test between the Colorado Rockies Average hit speed and the rest of the MLB
+# T-Test
+#### Comparing average hit speed between the colorado rockies <br>
+#### and the rest of Major League Baseball
 ```{r}
-# t test
 colorado <- bsbl %>% subset(Team == "Colorado")
 everyoneElse <- bsbl %>% subset(Team != "Colorado")
 
@@ -164,25 +192,34 @@ t.test(
 )
 ```
 
-# Non-Parametric BootStrap
-```{r include=TRUE, message=FALSE, warning=FALSE}
-bsbl2 <- na.omit(bsbl)
+This t-test is interesting because since the Rockies play at 5,000+ ft. <br>
+of elevation, the baseball travels further and faster there. However with the <br>
+t-test we conclude that there is a difference between the two groups, but I <br>
+expected the rockies to be higher. Then again, they play just half of their games <br>
+at their home stadium, and play in the AL West which is arguably the toughest <br>
+division in baseball. Espicially in 2017.
 
-set.seed(10)
+# BOOTSTRAPPING
 
-x <- c(bsbl2$H)
+#### Functions to perform Non-Parametric-Bootstrapping
+```{r include=TRUE}
 
-#define function to calculate mean
-meanFunc <- function(x,i){mean(x[i])}
+npBoots <- function(data_set, num_samples, func=mean) {
+  statFunc <- function(x, i){func(x[i])}
+  return (
+    boot(c(data_set), statFunc, num_samples)
+  )
+}
 
-#calculate standard error using 100 bootstrapped samples
-boot(x, meanFunc, 100)
-
-bsbl2 %>% ggplot(aes(x = H)) + 
- geom_histogram()
 ```
 
-# Parametric BootStrap
+#### Bootstrapping 100 samples for average hit angle in 2017 
+```{r include=TRUE}
+npBoots(bsblSub$avg_hit_angle, 100)
+```
+
+
+#### Functions related to performing parametric bootstrapping
 ```{r include=TRUE}
 
 paramBoots <- function(data_set, num_samples) {
@@ -212,10 +249,11 @@ paramBootsStat <- function(func, parameterBoots) {
 
 ```
 
-Using the above functions to evaluate the standart deviation of 
+Using the above functions to evaluate the standart deviation of <br>
 the bootstrap sample mean, and median for season total hits in 2017
+
 ```{r include=TRUE}
-b <- paramBoots(bsbl2$H,100)
+b <- paramBoots(bsbl$H,100)
 bootMedians <- sd(paramBootsStat(median, b))
 bootMeans <- sd(paramBootsStat(mean, b))
 ```
@@ -225,31 +263,29 @@ Standart deviation of bootstrapped means -> `r bootMeans` <br>
 
 
 # Pivoting data into wide format
+
 <br>
 This would create a new dataset with columns for each unique value in the Team column, <br> 
 and the values for barrels per plate appearance <br> 
 column would be spread across these new columns. <br>
 <br>
-```{r include=TRUE}
-wideBsbl <- pivot_wider(
-  bsblSub, 
+```{r include=TRUE,  R.options=list(max.print=10)}
+bsblSub %>% pivot_wider(
   names_from = Team, 
   values_from = brl_pa
 )
 ```
 
 # utilizing lubridate functions with our data
-```{r include=TRUE, R.options=list(max.print=10)}
-
+```{r include=TRUE}
 # creating the dates vector
 dates <- trackman$Date %>% month()
-
 # adding it to our dataframe
 trackman$month = month.abb[dates]
-
-trackman$month
-
 ```
+
+The trackman data that we have is from one game. <br>
+This game was played in the month of `r trackman$month[1]`
 
 # Data Dictionary
 ```{r indluce=FALSE}
