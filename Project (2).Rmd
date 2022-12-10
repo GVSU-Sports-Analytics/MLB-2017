@@ -20,10 +20,10 @@ library("dplyr")
 ```{r}
 # Read in data
 library(readr) 
-statCast <- read_csv("statcast2017.csv")
+statCast <- read_csv("/data/statcast2017.csv")
 skim(statCast)
 
-bbref<- read_csv("bbref2017.csv")
+bbref<- read_csv("/data/bbref2017.csv")
 skim(bbref)
 
 ```

@@ -62,6 +62,21 @@ bsbl <- left_join(
 )
 ```
 
+# SUMMARY STATISTICS
+```{r, include=TRUE}
+# removing players that were traded to avoid confusion
+bsblTeams <- bsbl[!grepl(",", bsbl$Team),]
+
+bsblTeams %>% group_by(Team) %>% 
+   summarise(Average = mean(barrels, na.rm = TRUE),
+             Median = median(barrels, na.rm = TRUE),
+             Min = min(barrels, na.rm = TRUE),
+             Max = max(barrels, na.rm = TRUE)) %>%
+  mutate(across(Average:Max, ~ round(.x, 3))) %>% 
+  arrange(desc(Average)) %>% knitr::kable()
+
+```
+
 
 # DATA VISUALIZATION
 ```{r include = TRUE, warning=FALSE, message=FALSE}
@@ -177,7 +192,9 @@ trackman %>% subset(PitcherThrows == "Left") %>% strikeZonePlot() +
   )
 ```
 
-
+from the two graphs above I notice that both left handed and right <br>
+handed pitchers like to throw sliders in the bottom half of the zone <br>
+and fastballs at the top of the zone. <br>
 
 # T-Test
 #### Comparing average hit speed between the colorado rockies <br>
