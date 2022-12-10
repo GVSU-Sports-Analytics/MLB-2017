@@ -62,21 +62,6 @@ bsbl <- left_join(
 )
 ```
 
-# SUMMARY STATISTICS
-```{r, include=TRUE}
-# removing players that were traded to avoid confusion
-bsblTeams <- bsbl[!grepl(",", bsbl$Team),]
-
-bsblTeams %>% group_by(Team) %>% 
-   summarise(Average = mean(barrels, na.rm = TRUE),
-             Median = median(barrels, na.rm = TRUE),
-             Min = min(barrels, na.rm = TRUE),
-             Max = max(barrels, na.rm = TRUE)) %>%
-  mutate(across(Average:Max, ~ round(.x, 3))) %>% 
-  arrange(desc(Average)) %>% knitr::kable()
-
-```
-
 
 # DATA VISUALIZATION
 ```{r include = TRUE, warning=FALSE, message=FALSE}
@@ -145,11 +130,11 @@ heightSZ <- in2ft(44.08)
 minySZ <- in2ft(18.29)
 ```
 
-According to baseballprospectus.com, the dimensions for the universal
-strikezone are as follows:
+According to baseballprospectus.com, <br> 
+the dimensions for the universal strikezone are as follows:
 
-Height :`r heightSZ` ft.
-Width : `r rightSZ` ft.
+Height :`r heightSZ` ft. <br>
+Width : `r rightSZ` ft. <br>
 
 #### Function for creating a strikezone plot given a trackman dataset
 ```{r include=TRUE}
@@ -270,13 +255,14 @@ Using the above functions to evaluate the standart deviation of <br>
 the bootstrap sample mean, and median for season total hits in 2017
 
 ```{r include=TRUE}
-b <- paramBoots(bsbl$H,100)
+bsbl2 <- na.omit(bsbl)
+b <- paramBoots(bsbl2$H,100)
 bootMedians <- sd(paramBootsStat(median, b))
 bootMeans <- sd(paramBootsStat(mean, b))
 ```
 
 Standard deviation of bootstrapped medians -> `r bootMedians` <br>
-Standart deviation of bootstrapped means -> `r bootMeans` <br>
+Standard deviation of bootstrapped means -> `r bootMeans` <br>
 
 
 # Pivoting data into wide format
@@ -287,11 +273,15 @@ and the values for barrels per plate appearance <br>
 column would be spread across these new columns. <br>
 <br>
 ```{r include=TRUE,  R.options=list(max.print=10)}
-bsblSub %>% pivot_wider(
+wide_bsbl <- bsblSub %>% pivot_wider(
   names_from = Team, 
   values_from = brl_pa
 )
 ```
+
+The dataset produced with pivot_wider is not very useful <br>
+for any kind of analysis we are trying to do in this project <br>
+but pivoting data is a very useful tool. <br>
 
 # utilizing lubridate functions with our data
 ```{r include=TRUE}
@@ -302,7 +292,45 @@ trackman$month = month.abb[dates]
 ```
 
 The trackman data that we have is from one game. <br>
-This game was played in the month of `r trackman$month[1]`
+This game was played in the month of `r trackman$month[1]` <br>
+
+
+# SUMMARY STATISTICS
+
+#### Barrels per team
+A "barrel" is defined as a well-struck ball where the combination of exit velocity <br>
+and launch angle generally leads to a minimum . 500 batting average and 1.500 slugging percentage <br>
+```{r, include=TRUE}
+# removing players that were traded to avoid confusion
+bsblTeams <- bsbl[!grepl(",", bsbl$Team),]
+
+bsblTeams %>% group_by(Team) %>% 
+   summarise(Average = mean(barrels, na.rm = TRUE),
+             Median = median(barrels, na.rm = TRUE),
+             Min = min(barrels, na.rm = TRUE),
+             Max = max(barrels, na.rm = TRUE)) %>%
+  mutate(across(Average:Max, ~ round(.x, 3))) %>% 
+  arrange(desc(Average)) %>% knitr::kable()
+```
+
+
+#### Batting average by age
+```{r, include=TRUE}
+bsbl <- na.omit(bsbl)
+
+ageSummary <- bsbl %>% group_by(Age) %>% 
+   summarise(Average = mean(BA, na.rm = TRUE),
+             Median = median(BA, na.rm = TRUE),
+             Min = min(BA, na.rm = TRUE),
+             Max = max(BA, na.rm = TRUE))
+
+
+ageSummary <- ageSummary %>% mutate(across(Average:Max, ~ round(.x, 3))) %>% 
+  arrange(Age)
+
+knitr::kable(ageSummary)
+```
+
 
 # Data Dictionary
 ```{r indluce=FALSE}
